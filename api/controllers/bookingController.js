@@ -35,7 +35,7 @@ exports.get_user_current_partners = async (req, res) => {
   const username = req.headers.username;
   const password = req.headers.password;
 
-  res.json(await crawlerManager.getAllPartners(type, clubId, username, password));
+  res.json(await crawlerManager.getAllInfosAndPartners(type, clubId, username, password));
 };
 
 exports.book = async (req, res) => {

@@ -17,7 +17,7 @@ module.exports = class AbstractCrawler {
   async getAllReservations(clubId, username, password) {
   }
 
-  async getAllPartners(clubId, username, password) {
+  async getAllInfosAndPartners(clubId, username, password) {
   }
 
   async book(clubId, username, password, startDate, startTime, duration, court) {
@@ -29,7 +29,7 @@ module.exports = class AbstractCrawler {
   }
 
   async closeBrowser() {
-    await this.page.screenshot({path: 'example.png'});
+    await this.page.screenshot({path: './screenshots/example.png'});
     await this.browser.close();
   }
 

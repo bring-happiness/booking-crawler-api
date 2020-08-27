@@ -23,10 +23,10 @@ exports.getAllReservations = async (type, clubId, username, password) => {
   return await crawler.getAllReservations(clubId, username, password);
 };
 
-exports.getAllPartners = async (type, clubId, username, password) => {
+exports.getAllInfosAndPartners = async (type, clubId, username, password) => {
   let crawler = new (getCrawler(type));
 
-  return await crawler.getAllPartners(clubId, username, password);
+  return await crawler.getAllInfosAndPartners(clubId, username, password);
 };
 
 exports.book = async (type, clubId, username, password, startDate, startTime, duration, court) => {

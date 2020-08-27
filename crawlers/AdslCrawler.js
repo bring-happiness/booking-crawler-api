@@ -17,13 +17,15 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     await this.page.type('.bloc p input[type="text"]', username);
     await this.page.type('.bloc p input[type="password"]', password);
+
+    await this.clickIfPresent('.bloc .bouton_valider');
   }
 
-  async clickBtnNextMonth () {
+  async clickBtnNextMonth() {
     return await this.clickIfPresent('.ui-datepicker-next.ui-corner-all:not(.ui-state-disabled)');
   }
 
-  async getAllDatesOnDatepicker () {
+  async getAllDatesOnDatepicker() {
     return this.page.evaluate(() => {
       const DATE_ID_PREFIX = 'DATE_ID_PREFIX_';
 
@@ -44,7 +46,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return allDates.find(date => date.year === year && date.month === month && date.day === day)
   }
 
-  async clickDateOnDatepicker (year, month, day) {
+  async clickDateOnDatepicker(year, month, day) {
     year = year.toString();
     month = month.toString();
     day = day.toString();
@@ -62,7 +64,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
         hasNextMonth = await this.clickBtnNextMonth();
       }
 
-    } while(hasNextMonth);
+    } while (hasNextMonth);
 
     if (date) {
       await this.clickIfPresent(date.id);
@@ -72,7 +74,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return date;
   }
 
-  async getError () {
+  async getError() {
     return await this.page.evaluate(() => {
       const error = document.querySelector('.erreur');
 
@@ -84,16 +86,16 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     });
   }
 
-  async waitFicheReservation () {
+  async waitFicheReservation() {
     await Promise.all([
-      this.page.waitForSelector('.fiche_reservation', {timeout: 3000}),
-      this.clickIfPresent('#liste_reservation + button.ui-button.ui-widget.ui-state-default.ui-corner-all.ui-button-text-icon-primary'),
+      this.page.waitForSelector('.bouton_resag', {timeout: 3000}),
+      this.clickIfPresent('.bouton_resag'),
     ]);
 
     await this.page.waitFor(800);
   }
 
-  async waitFicheAdherentReservationModification () {
+  async waitFicheAdherentReservationModification() {
     return this.page.waitForSelector('.fic_adherent_reservation_modification', {timeout: 3000})
   }
 
@@ -140,7 +142,12 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return allReservations;
   }
 
-  async getAllPartners(clubId, username, password) {
+  async getAllInfosAndPartners(clubId, username, password) {
+    const infosAndPartners = {
+      partners: [],
+
+    };
+
     await this.startBrowser(clubId);
     await this.goToPage(clubId);
 
@@ -149,11 +156,11 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     await this.manageCommuniques();
     await this.manageUserCurrentReservations();
     await this.waitFicheReservation();
-    let allPartners = await this.managePartners(true);
+    infosAndPartners.partners = await this.managePartners(true);
 
     await this.closeBrowser();
 
-    return allPartners;
+    return infosAndPartners;
   }
 
   async book(clubId, username, password, startDate, startTime, duration, court) {
@@ -198,7 +205,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
       let time1 = new Date();
       await Promise.all([
         this.page.waitForSelector('.fic_adherent_reservation', {timeout: 1500}),
-        this.clickIfPresent('.message + button.ui-button.ui-widget.ui-state-default.ui-corner-all.ui-button-text-icon-primary'),
+        this.clickIfPresent('.bouton_publipostage'),
       ]);
 
       if (isReturningReservations) {
@@ -213,7 +220,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     }
   }
 
-  async manageBook (startDate, startTime, duration, court) {
+  async manageBook(startDate, startTime, duration, court) {
 
     let response = {
       success: false,
@@ -256,7 +263,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     }
   }
 
-  async managePartners (isReturningPartners = false) {
+  async managePartners(isReturningPartners = false) {
     try {
       let time1 = new Date();
 
@@ -276,15 +283,15 @@ module.exports = class AdslCrawler extends AbstractCrawler {
           bookSuccess = await this.page.evaluate(() => {
             let exitForEach = false;
 
-            [...document.querySelectorAll('.ho[style*="background-color: rgb(153, 255, 153);"]')].forEach(freeReservation => {
+            [...document.querySelectorAll('.ho[style*="background-color: var(--resa-libre);"]')].forEach(freeReservation => {
               if (exitForEach) {
                 return;
               }
 
               try {
-                const clickEvent  = document.createEvent ('MouseEvents');
-                clickEvent.initEvent ('dblclick', true, true);
-                freeReservation.dispatchEvent (clickEvent);
+                const clickEvent = document.createEvent('MouseEvents');
+                clickEvent.initEvent('dblclick', true, true);
+                freeReservation.dispatchEvent(clickEvent);
 
                 exitForEach = true;
               } catch (error) {
@@ -300,7 +307,14 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
       await this.waitFicheAdherentReservationModification();
 
+      partners = await this.page.evaluate(() =>
+        Array.from(document.querySelectorAll('#CHAMP_TYPE_1 option[value*="-"]'),
+          element => element.textContent
+        )
+      );
 
+      this.clickIfPresent('.bouton_supprimer');
+      this.clickIfPresent('#modal_confirmation .bouton_supprimer');
 
       let time2 = new Date();
       console.log(time2 - time1);
@@ -323,7 +337,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
       do {
         let allDateCalendar = await this.getAllDatesOnDatepicker();
-
+        console.log(allDateCalendar)
         let iterator = 0;
         let exitLoop = false;
 
@@ -364,11 +378,11 @@ module.exports = class AdslCrawler extends AbstractCrawler {
   crawlCommuniques() {
     let communiques = {
       title: '',
-      text: ''
+      text: []
     };
 
     communiques.title = document.querySelector('#titre_fenetre').innerText.replace('Retour', ' ').trim();
-    communiques.text = document.querySelector('.message').innerText;
+    communiques.text = Array.from(document.querySelectorAll('.message'), element => element.innerText);//document.querySelectorAll('.message').innerText;
 
     return communiques;
   }

@@ -144,8 +144,13 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
   async getAllInfosAndPartners(clubId, username, password) {
     const infosAndPartners = {
+      civility: '',
+      firstname: '',
+      lastname: '',
+      birthdate: '',
+      license: '',
+      ranking: '',
       partners: [],
-
     };
 
     await this.startBrowser(clubId);
@@ -155,6 +160,31 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     await this.manageCommuniques();
     await this.manageUserCurrentReservations();
+
+    // Tab Formation
+    await this.clickIfPresent('#tab_formation');
+    const allFormationFields = await this.page.evaluate(() => {
+      return Array.from(document.querySelectorAll('#bloc_formation .champ'),
+        e => e.innerText)
+    });
+    infosAndPartners.license = allFormationFields[1].split('°')[1].split(' ')[0];
+    infosAndPartners.ranking = allFormationFields[2].split(': ')[1].split(' ')[0];
+
+    // Tab Informations
+    await this.clickIfPresent('#tab_information');
+    const allInformationFields = await this.page.evaluate(() => {
+      return Array.from([
+        document.querySelector('#bloc_coordonnees_ouvert #L_CIVILITE'),
+        document.querySelector('#bloc_coordonnees_ouvert input[name="L_NOM"]'),
+        document.querySelector('#bloc_coordonnees_ouvert input[name="L_PRENOM"]'),
+        document.querySelector('#bloc_coordonnees_ouvert input[name="D_NAISSANCE"]'),
+      ], e => e.value)
+    });
+    infosAndPartners.civility = allInformationFields[0];
+    infosAndPartners.lastname = allInformationFields[1];
+    infosAndPartners.firstname = allInformationFields[2];
+    infosAndPartners.birthdate = allInformationFields[3];
+
     await this.waitFicheReservation();
     infosAndPartners.partners = await this.managePartners(true);
 
@@ -178,7 +208,6 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     return bookResponse;
   }
-
 
   async manageCommuniques(isReturningCommuniques = false) {
     try {

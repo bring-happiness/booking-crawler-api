@@ -29,7 +29,7 @@ exports.get_all_reservations = async (req, res) => {
   res.json(await crawlerManager.getAllReservations(type, clubId, username, password));
 };
 
-exports.get_user_current_partners = async (req, res) => {
+exports.get_user_current_infos_and_partners = async (req, res) => {
   const type = req.params.type;
   const clubId = req.headers.club_id;
   const username = req.headers.username;
@@ -48,6 +48,7 @@ exports.book = async (req, res) => {
   const startTime = req.body.start_time;
   const duration = req.body.duration;
   const court = req.body.court;
+  const partner = req.body.partner;
 
-  res.json(await crawlerManager.book(type, clubId, username, password, startDate, startTime, duration, court));
+  res.json(await crawlerManager.book(type, clubId, username, password, startDate, startTime, duration, court, partner));
 };

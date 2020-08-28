@@ -20,7 +20,7 @@ module.exports = class AbstractCrawler {
   async getAllInfosAndPartners(clubId, username, password) {
   }
 
-  async book(clubId, username, password, startDate, startTime, duration, court) {
+  async book(clubId, username, password, startDate, startTime, duration, court, partner) {
   }
 
   async startBrowser(clubId) {

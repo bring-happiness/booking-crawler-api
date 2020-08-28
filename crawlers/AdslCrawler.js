@@ -193,16 +193,16 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return infosAndPartners;
   }
 
-  async book(clubId, username, password, startDate, startTime, duration, court) {
+  async book(clubId, username, password, startDate, startTime, duration, court, partner) {
     await this.startBrowser(clubId);
     await this.goToPage(clubId);
-
     await this.login(username, password);
 
     await this.manageCommuniques();
     // todo: compare before and after to know if book is a success
     let userCurrentReservations = await this.manageUserCurrentReservations(true);
-    let bookResponse = await this.manageBook(startDate, startTime, duration, court);
+    await this.waitFicheReservation();
+    let bookResponse = await this.manageBook(startDate, startTime, duration, court, partner);
 
     await this.closeBrowser();
 
@@ -249,7 +249,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     }
   }
 
-  async manageBook(startDate, startTime, duration, court) {
+  async manageBook(startDate, startTime, duration, court, partner) {
 
     let response = {
       success: false,
@@ -281,6 +281,30 @@ module.exports = class AdslCrawler extends AbstractCrawler {
           this.clickIfPresent(bookSelector, true)
         ]);
       }
+
+      const partners = await this.page.evaluate(() =>
+        Array.from(document.querySelectorAll('#CHAMP_TYPE_1 option[value*="-"]'),
+          element => ({ value: element.value, name: element.textContent })
+        )
+      );
+      console.log(partners)
+
+      const partnerOptionValue = partners.find(_partner => _partner.name.toLowerCase() === partner.toLowerCase()).value;
+
+      // Select partner
+      await this.page.evaluate(() => {
+        const select = document.querySelector('#CHAMP_TYPE_1');
+        select.style.display = 'block';
+      });
+      await this.clickIfPresent('#CHAMP_TYPE_1');
+      await this.page.select('#CHAMP_TYPE_1', partnerOptionValue);
+
+      await this.page.waitFor(200);
+
+      // Submit the booking
+      this.clickIfPresent('.bouton_valider');
+
+      await this.page.waitFor(5000);
 
       let time2 = new Date();
       console.log(time2 - time1);

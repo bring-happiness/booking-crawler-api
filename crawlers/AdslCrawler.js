@@ -199,14 +199,39 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     await this.login(username, password);
 
     await this.manageCommuniques();
-    // todo: compare before and after to know if book is a success
-    let userCurrentReservations = await this.manageUserCurrentReservations(true);
+    // compare before and after to know if book is a success
+    let oldCurrentReservations = (await this.manageUserCurrentReservations(true)).reservations;
+
     await this.waitFicheReservation();
+
+    // todo: handler book errors
     let bookResponse = await this.manageBook(startDate, startTime, duration, court, partner);
+
+    await this.page.waitFor(1000);
+
+    await this.clickIfPresent('.bouton_espaceperso');
+
+    await this.page.waitFor(1000);
+
+    const newCurrentReservations = await this.page.evaluate(() =>{
+      return Array.from(document.querySelectorAll('#bloc_resa_resa #liste_reservation tr:not(#r-entete)'),
+        element => ({ id: element.id })
+      )
+    });
+
+    bookResponse.success = oldCurrentReservations.length === (newCurrentReservations.length - 1)
 
     await this.closeBrowser();
 
     return bookResponse;
+  }
+
+  async cancelBooking(clubId, username, password, startDate, startTime, duration, court, partner) {
+    // todo: to implement (cancel and check if the banner "réservation bien supprimée" is shown
+  }
+
+  async changePartner(clubId, username, password, startDate, startTime, duration, court, partner) {
+    // todo: to implement
   }
 
   async manageCommuniques(isReturningCommuniques = false) {
@@ -287,7 +312,6 @@ module.exports = class AdslCrawler extends AbstractCrawler {
           element => ({ value: element.value, name: element.textContent })
         )
       );
-      console.log(partners)
 
       const partnerOptionValue = partners.find(_partner => _partner.name.toLowerCase() === partner.toLowerCase()).value;
 
@@ -299,12 +323,10 @@ module.exports = class AdslCrawler extends AbstractCrawler {
       await this.clickIfPresent('#CHAMP_TYPE_1');
       await this.page.select('#CHAMP_TYPE_1', partnerOptionValue);
 
-      await this.page.waitFor(200);
+      await this.page.waitFor(1000);
 
       // Submit the booking
-      this.clickIfPresent('.bouton_valider');
-
-      await this.page.waitFor(5000);
+      this.clickIfPresent('#workpage button:nth-of-type(2)');
 
       let time2 = new Date();
       console.log(time2 - time1);
@@ -453,6 +475,8 @@ module.exports = class AdslCrawler extends AbstractCrawler {
         reservationHeaderColumns = [...tableRow.children].map(node => node.className);
       } else {
         let reservation = {};
+
+        reservation.id = tableRow.id;
 
         [...tableRow.children].map(node => {
           reservation[node.className] = node.innerText;

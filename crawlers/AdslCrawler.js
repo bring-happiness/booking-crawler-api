@@ -99,6 +99,12 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return this.page.waitForSelector('.fic_adherent_reservation_modification', {timeout: 3000})
   }
 
+  async getAllUsers(clubId, username, password) {
+    // todo: to implement
+    // type every first name
+    // And store every result
+  }
+
   async getCommuniques(clubId, username, password) {
     await this.startBrowser(clubId);
     await this.goToPage(clubId);

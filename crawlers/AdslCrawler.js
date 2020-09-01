@@ -124,8 +124,8 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     await this.login(username, password);
 
-    await this.manageCommuniques();
-    let userCurrentReservations = await this.manageUserCurrentReservations(true);
+    const communiques = await this.manageCommuniques();
+    let userCurrentReservations = await this.manageUserCurrentReservations(communiques !== '', true);
 
     await this.closeBrowser();
 
@@ -138,8 +138,9 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     await this.login(username, password);
 
-    await this.manageCommuniques();
-    await this.manageUserCurrentReservations();
+    const communiques = await this.manageCommuniques();
+    await this.manageUserCurrentReservations(communiques !== '', true);
+
     await this.waitFicheReservation();
     let allReservations = await this.manageAllReservations(true);
 
@@ -164,8 +165,8 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     await this.login(username, password);
 
-    await this.manageCommuniques();
-    await this.manageUserCurrentReservations();
+    const communiques = await this.manageCommuniques();
+    await this.manageUserCurrentReservations(communiques !== '', true);
 
     // Tab Formation
     await this.clickIfPresent('#tab_formation');
@@ -204,9 +205,9 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     await this.goToPage(clubId);
     await this.login(username, password);
 
-    await this.manageCommuniques();
+    const communiques = await this.manageCommuniques();
     // compare before and after to know if book is a success
-    let oldCurrentReservations = (await this.manageUserCurrentReservations(true)).reservations;
+    let oldCurrentReservations = (await this.manageUserCurrentReservations(communiques !== '',true)).reservations;
 
     await this.waitFicheReservation();
 
@@ -255,18 +256,26 @@ module.exports = class AdslCrawler extends AbstractCrawler {
       let time2 = new Date();
       console.log(time2 - time1);
     } catch (error) {
-      console.error(error);
+      //console.error(error);
       return '';
     }
   }
 
-  async manageUserCurrentReservations(isReturningReservations = false) {
+  async manageUserCurrentReservations(hasCommuniques = false, isReturningReservations = false) {
     try {
       let time1 = new Date();
-      await Promise.all([
-        this.page.waitForSelector('.fic_adherent_reservation', {timeout: 1500}),
-        this.clickIfPresent('.bouton_publipostage'),
-      ]);
+
+      if (hasCommuniques) {
+        await Promise.all([
+          this.page.waitForSelector('.fic_adherent_reservation', {timeout: 1500}),
+          this.clickIfPresent('.bouton_publipostage'),
+        ]);
+      } else {
+        await Promise.all([
+          this.page.waitForSelector('.fic_adherent_reservation', {timeout: 1500}),
+          this.clickIfPresent('.bouton_espaceperso'),
+        ]);
+      }
 
       if (isReturningReservations) {
         return await this.page.evaluate(this.crawlUserCurrentReservations);
@@ -305,7 +314,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
         let hours = Number(startTimeSplitted[0]);
         let minutes = Number(startTimeSplitted[1]);
 
-        let bookSelector = '[id="' + hours + '_' + minutes + '_' + court + '"]';
+        let bookSelector = `[id="${hours}_${minutes}_${court}"]`;
 
         await Promise.all([
           this.waitFicheAdherentReservationModification(),

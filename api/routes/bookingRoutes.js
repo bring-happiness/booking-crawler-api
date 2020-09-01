@@ -3,6 +3,9 @@
 module.exports = (app) => {
   let bookingController = require('../controllers/bookingController');
 
+  app.route('/:type/login')
+    .get(bookingController.loginUser);
+
   app.route('/communiques/:type')
     .get(bookingController.get_communiques);
 

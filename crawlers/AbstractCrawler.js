@@ -8,6 +8,9 @@ module.exports = class AbstractCrawler {
     this.page = null;
   }
 
+  async loginUser(clubId, username, password) {
+  }
+
   async getAllUsers(clubId, username, password) {
   }
 

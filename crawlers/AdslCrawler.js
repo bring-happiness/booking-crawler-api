@@ -99,6 +99,26 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return this.page.waitForSelector('.fic_adherent_reservation_modification', {timeout: 3000})
   }
 
+  async loginUser(clubId, username, password) {
+    let success = false;
+
+    await this.startBrowser(clubId);
+    await this.goToPage(clubId);
+
+    await this.login(username, password);
+
+    try {
+      await this.page.waitForSelector('.bouton_espaceperso', {timeout: 1500});
+      success = true;
+    } catch (error) {
+
+    }
+
+    await this.closeBrowser();
+
+    return {success};
+  }
+
   async getAllUsers(clubId, username, password) {
     // todo: to implement
     // type every first name
@@ -207,7 +227,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     const communiques = await this.manageCommuniques();
     // compare before and after to know if book is a success
-    let oldCurrentReservations = (await this.manageUserCurrentReservations(communiques !== '',true)).reservations;
+    let oldCurrentReservations = (await this.manageUserCurrentReservations(communiques !== '', true)).reservations;
 
     await this.waitFicheReservation();
 
@@ -220,9 +240,9 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     await this.page.waitFor(1000);
 
-    const newCurrentReservations = await this.page.evaluate(() =>{
+    const newCurrentReservations = await this.page.evaluate(() => {
       return Array.from(document.querySelectorAll('#bloc_resa_resa #liste_reservation tr:not(#r-entete)'),
-        element => ({ id: element.id })
+        element => ({id: element.id})
       )
     });
 
@@ -324,7 +344,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
       const partners = await this.page.evaluate(() =>
         Array.from(document.querySelectorAll('#CHAMP_TYPE_1 option[value*="-"]'),
-          element => ({ value: element.value, name: element.textContent })
+          element => ({value: element.value, name: element.textContent})
         )
       );
 

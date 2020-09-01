@@ -2,6 +2,15 @@
 
 let crawlerManager = require('./../../crawlers/crawler-manager');
 
+exports.loginUser = async (req, res) => {
+  const type = req.params.type;
+  const clubId = req.headers.club_id;
+  const username = req.headers.username;
+  const password = req.headers.password;
+
+  res.json(await crawlerManager.loginUser(type, clubId, username, password));
+};
+
 exports.get_communiques = async (req, res) => {
   const type = req.params.type;
   const clubId = req.headers.club_id;

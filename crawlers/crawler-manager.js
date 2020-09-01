@@ -4,6 +4,18 @@ let getCrawler = (type) => {
   return require('./' + typePascalCase + 'Crawler');
 };
 
+exports.loginUser = async (type, clubId, username, password) => {
+  let crawler = new (getCrawler(type));
+
+  return await crawler.loginUser(clubId, username, password);
+};
+
+exports.getCommuniques = async (type, clubId, username, password) => {
+  let crawler = new (getCrawler(type));
+
+  return await crawler.getCommuniques(clubId, username, password);
+};
+
 exports.getCommuniques = async (type, clubId, username, password) => {
   let crawler = new (getCrawler(type));
 

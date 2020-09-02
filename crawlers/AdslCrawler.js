@@ -110,9 +110,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     try {
       await this.page.waitForSelector('.bouton_espaceperso', {timeout: 1500});
       success = true;
-    } catch (error) {
-
-    }
+    } catch (error) {}
 
     await this.closeBrowser();
 
@@ -563,7 +561,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
           minutes: idSplitted[1]
         },
         type: getReservationType(backgroundColor),
-        isFree: p.childNodes.length === 0,
+        isFree: p.style.backgroundColor === 'var(--resa-libre)',
         width: Number(p.style.width.replace('px', ''))
       }
     }).filter(reservation => reservation.width !== 0);

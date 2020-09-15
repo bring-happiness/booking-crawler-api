@@ -108,7 +108,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     await this.login(username, password);
 
     try {
-      await this.page.waitForSelector('.bouton_espaceperso', {timeout: 1500});
+      await this.page.waitForSelector('.bouton_espaceperso, .message', {timeout: 1500});
       success = true;
     } catch (error) {}
 
@@ -244,7 +244,8 @@ module.exports = class AdslCrawler extends AbstractCrawler {
       )
     });
 
-    bookResponse.success = oldCurrentReservations.length === (newCurrentReservations.length - 1)
+    const oldCurrentReservationsLength = oldCurrentReservations ? oldCurrentReservations.length : 0;
+    bookResponse.success = oldCurrentReservationsLength === (newCurrentReservations.length - 1)
 
     await this.closeBrowser();
 
@@ -544,7 +545,8 @@ module.exports = class AdslCrawler extends AbstractCrawler {
 
     let date = null;
     try {
-      date = document.getElementById('CHAMP_SELECTEUR_JOUR').value.split(' ')[0];
+      const dateFrenchFormat = document.getElementById('CHAMP_SELECTEUR_JOUR').value.split(' ')[0].split('/');
+      date = `${dateFrenchFormat[2]}-${dateFrenchFormat[1]}-${dateFrenchFormat[0]}`;
     } catch (error) {
     }
 
@@ -556,10 +558,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
         label: p.innerText.trim(),
         courtId: idSplitted[2],
         date: date,
-        startTime: {
-          hours: idSplitted[0],
-          minutes: idSplitted[1]
-        },
+        startTime: `${idSplitted[0]}:${idSplitted[1].padStart(2, '0')}`,
         type: getReservationType(backgroundColor),
         isFree: p.style.backgroundColor === 'var(--resa-libre)',
         width: Number(p.style.width.replace('px', ''))

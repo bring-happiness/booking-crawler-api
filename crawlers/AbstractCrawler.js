@@ -36,7 +36,7 @@ module.exports = class AbstractCrawler {
   }
 
   async startBrowser(clubId) {
-    this.browser = await puppeteer.launch({headless: false});
+    this.browser = await puppeteer.launch({headless: true});
     this.page = await this.browser.newPage();
   }
 

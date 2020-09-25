@@ -520,10 +520,7 @@ module.exports = class AdslCrawler extends AbstractCrawler {
       }
     });
 
-    return {
-      reservationHeaderColumns,
-      reservations
-    }
+    return reservations
   }
 
   async crawlAllReservations() {

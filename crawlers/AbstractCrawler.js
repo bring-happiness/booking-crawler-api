@@ -29,15 +29,16 @@ module.exports = class AbstractCrawler {
   async book(clubId, username, password, startDate, startTime, duration, court, partner) {
   }
 
-  async cancelBooking(clubId, username, password, startDate, startTime, duration, court, partner) {
+  async cancel(clubId, username, password, bookingId) {
   }
 
   async changePartner(clubId, username, password, startDate, startTime, duration, court, partner) {
   }
 
-  async startBrowser(clubId) {
+  async startBrowser() {
     this.browser = await puppeteer.launch({headless: true});
     this.page = await this.browser.newPage();
+    //this.page.on('console', consoleObj => console.log(consoleObj.text()));
   }
 
   async closeBrowser() {

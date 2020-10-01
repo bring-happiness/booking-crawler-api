@@ -252,8 +252,17 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     return bookResponse;
   }
 
-  async cancelBooking(clubId, username, password, startDate, startTime, duration, court, partner) {
-    // todo: to implement (cancel and check if the banner "réservation bien supprimée" is shown
+  async cancel(clubId, username, password, bookingId) {
+    // todo: to implement (cancel and check if the banner "réservation bien supprimée" is shown)
+    await this.startBrowser(clubId);
+    await this.goToPage(clubId);
+
+    await this.login(username, password);
+
+    const communiques = await this.manageCommuniques();
+    await this.manageUserCurrentReservations(communiques !== '', false);
+
+    await this.manageCancelBooking(bookingId);
   }
 
   async changePartner(clubId, username, password, startDate, startTime, duration, court, partner) {
@@ -521,6 +530,21 @@ module.exports = class AdslCrawler extends AbstractCrawler {
     });
 
     return reservations
+  }
+
+  async manageCancelBooking(bookingId) {
+    await this.clickIfPresent(`#liste_reservation tr[id="${bookingId}"] .date`, true);
+
+    const xPathExpression = "//span[contains(text(), 'Annuler la réservation')]";
+    await this.page.waitForXPath(xPathExpression);
+    const linkHandlers = await this.page.$x(xPathExpression);
+
+    if (linkHandlers.length < 1) {
+      throw new Error('Link not found');
+    }
+
+    await linkHandlers[0].click();
+    await this.clickIfPresent('#modal_confirmation .action .bouton_supprimer');
   }
 
   async crawlAllReservations() {

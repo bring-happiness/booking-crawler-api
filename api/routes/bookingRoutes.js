@@ -20,4 +20,7 @@ module.exports = (app) => {
 
   app.route('/reservations/:type/book')
     .post(bookingController.book);
+
+  app.route('/reservations/:type/cancel')
+    .post(bookingController.cancel);
 };

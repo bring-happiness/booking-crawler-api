@@ -41,6 +41,12 @@ exports.getAllInfosAndPartners = async (type, clubId, username, password) => {
   return await crawler.getAllInfosAndPartners(clubId, username, password);
 };
 
+exports.cancel = async (type, clubId, username, password, bookingId) => {
+  let crawler = new (getCrawler(type));
+
+  return await crawler.cancel(clubId, username, password, bookingId);
+};
+
 exports.book = async (type, clubId, username, password, startDate, startTime, duration, court, partner) => {
   let crawler = new (getCrawler(type));
 

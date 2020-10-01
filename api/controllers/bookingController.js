@@ -47,6 +47,16 @@ exports.get_user_current_infos_and_partners = async (req, res) => {
   res.json(await crawlerManager.getAllInfosAndPartners(type, clubId, username, password));
 };
 
+exports.cancel = async (req, res) => {
+  const type = req.params.type;
+  const clubId = req.headers.club_id;
+  const username = req.headers.username;
+  const password = req.headers.password;
+  const bookingId = req.body.booking_id;
+
+  res.json(await crawlerManager.cancel(type, clubId, username, password, bookingId));
+};
+
 exports.book = async (req, res) => {
   console.log(req.body, req.headers)
   const type = req.params.type;
